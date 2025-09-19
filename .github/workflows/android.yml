@@ -70,8 +70,13 @@ jobs:
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;34.0.0" \
+            "build-tools;36.1.0" \
             "ndk;25.2.9519653"
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+          # Legacy path shims for older p4a checks
+          mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" "$ANDROID_SDK_ROOT/tools/bin/avdmanager"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
           echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
@@ -88,10 +93,11 @@ jobs:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/25.2.9519653
         run: |
           set -e
-          ls -la
+          which sdkmanager || true
+          sdkmanager --version || true
+          ls -la "$ANDROID_SDK_ROOT/tools/bin" || true
+          ls -la "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" || true
           test -f buildozer.spec
-          echo "Using SDK at: $ANDROIDSDK"
-          echo "Using NDK at: $ANDROIDNDK"
           buildozer -v android debug
 
       - name: Upload APK artifact
