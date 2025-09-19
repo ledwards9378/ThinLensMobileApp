@@ -80,10 +80,18 @@ jobs:
       - name: Build APK (debug, verbose)
         env:
           BUILDOZER_WARN_ON_ROOT: "1"
+          ANDROIDSDK: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROIDNDK: ${{ env.ANDROID_SDK_ROOT }}/ndk/25.2.9519653
+          ANDROIDAPI: "33"
+          NDKAPI: "21"
+          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/25.2.9519653
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/25.2.9519653
         run: |
           set -e
           ls -la
           test -f buildozer.spec
+          echo "Using SDK at: $ANDROIDSDK"
+          echo "Using NDK at: $ANDROIDNDK"
           buildozer -v android debug
 
       - name: Upload APK artifact
