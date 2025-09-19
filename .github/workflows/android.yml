@@ -10,12 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show env (debug)
-        run: |
-          uname -a
-          docker --version
-          python3 --version
-          ls -la
+      - name: Set up Java 17 (Gradle requires it)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Cache Buildozer/Gradle
         uses: actions/cache@v4
@@ -27,16 +26,12 @@ jobs:
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
           restore-keys: buildozer-${{ runner.os }}-
 
-      - name: Build with Buildozer (Docker)
-        uses: addnab/docker-run-action@v3
+      - name: Build with Buildozer (no Docker)
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          image: kivy/buildozer:latest
-          options: -v ${{ github.workspace }}:/home/user/app -w /home/user/app
-          run: |
-            set -e
-            export BUILDOZER_WARN_ON_ROOT=1
-            buildozer --version
-            buildozer android debug
+          workdir: .
+          buildozer_version: stable
+          command: buildozer android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
