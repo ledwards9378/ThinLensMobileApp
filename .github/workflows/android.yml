@@ -24,7 +24,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential ccache git zip unzip curl rsync pkg-config \
+            coreutils build-essential ccache git zip unzip curl rsync pkg-config \
             openjdk-17-jdk \
             python3 python3-venv python3-pip python3-setuptools python3-distutils \
             libffi-dev libssl-dev libsqlite3-dev zlib1g-dev \
@@ -51,24 +51,39 @@ jobs:
           python3 -m pip install -U buildozer
           buildozer --version
 
-      - name: Install Android cmdline-tools, NDK 25.2, build-tools 34, platform 33
-        env:
-          PATH: /usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:${PATH}
+      - name: Install Android SDK/NDK
         run: |
-          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "cmdline-tools;latest"
-          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
+          set -e
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          mkdir -p "$ANDROID_SDK_ROOT"
+          # Ensure sdkmanager exists (bootstrap if missing)
+          if ! command -v sdkmanager >/dev/null 2>&1; then
+            echo "Bootstrapping cmdline-tools..."
+            curl -sSL -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools
+            mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+            mv /tmp/cmdtools/cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          fi
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
-            "platform-tools" "platforms;android-33" "build-tools;34.0.0" "ndk;25.2.9519653"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+            "cmdline-tools;latest" \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;34.0.0" \
+            "ndk;25.2.9519653"
+          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
+          echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> "$GITHUB_ENV"
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
       - name: Build APK (debug, verbose)
         env:
           BUILDOZER_WARN_ON_ROOT: "1"
         run: |
           set -e
+          ls -la
+          test -f buildozer.spec
           buildozer -v android debug
 
       - name: Upload APK artifact
