@@ -22,6 +22,14 @@ android.api = 33
 android.minapi = 29
 android.ndk_api = 21
 
+# Force Buildozer/p4a to use the preinstalled SDK/NDK and accept licenses
+android.accept_sdk_license = True
+android.sdk_path = /usr/local/lib/android/sdk
+android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
+android.ndk = 25.2.9519653
+# Prefer stable build-tools to avoid preview prompts
+android.build_tools_version = 34.0.0
+
 # Media/image permissions (Android 13+ and legacy)
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES
 
