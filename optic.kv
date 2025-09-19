@@ -1,0 +1,158 @@
+#:kivy 2.2.0
+#:import dp kivy.metrics.dp
+
+<MainUI>:
+    orientation: 'vertical'
+    padding: dp(6)
+    spacing: dp(6)
+
+    BoxLayout:
+        size_hint_y: None
+        height: dp(48)
+        spacing: dp(6)
+
+        Label:
+            text: '[b]Optic Lab — Lens Simulator[/b]'
+            markup: True
+            font_size: '18sp'
+            halign: 'left'
+            valign: 'middle'
+        Label:
+            text: 'v0.1.1'
+            size_hint_x: None
+            width: dp(60)
+            font_size: '14sp'
+            color: (0.2,0.4,0.9,1)
+
+        Button:
+            text: 'Open image'
+            size_hint_x: None
+            width: dp(110)
+            on_release: root.open_filechooser()
+
+        ToggleButton:
+            id: grid_toggle
+            text: 'Grid'
+            state: 'down' if root.show_grid else 'normal'
+            on_state: root.toggle_grid(self.state == 'down')
+            size_hint_x: None
+            width: dp(80)
+
+        Button:
+            text: 'Save PNG'
+            size_hint_x: None
+            width: dp(100)
+            on_release: root.save_current_png()
+
+        Button:
+            text: 'Reset'
+            size_hint_x: None
+            width: dp(80)
+            on_release: root.reset_view()
+
+    BoxLayout:
+        spacing: dp(6)
+
+        FloatLayout:
+            id: image_area
+            size_hint_x: 0.75
+            canvas.before:
+                Color:
+                    rgba: (0.98,0.98,1,1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            AsyncImage:
+                id: png_view
+                size_hint: 1, 1
+                pos_hint: {'x': 0, 'y': 0}
+                allow_stretch: True
+                keep_ratio: True
+                source: root.current_png
+                nocache: True
+
+        BoxLayout:
+            id: control_panel
+            orientation: 'vertical'
+            size_hint_x: 0.25
+            padding: dp(6)
+            spacing: dp(6)
+
+            Label:
+                text: '[b]Controls[/b]'
+                markup: True
+                size_hint_y: None
+                height: dp(28)
+
+            # Focal length
+            Label:
+                text: 'Focal (f)'
+                size_hint_y: None
+                height: dp(18)
+            Slider:
+                id: focal_slider
+                min: 0.3
+                max: 2.5
+                value: root.focal
+                on_value: root.focal = self.value
+            Label:
+                id: focal_label
+                text: 'f = {:.2f}'.format(root.focal)
+                size_hint_y: None
+                height: dp(18)
+
+            # Object width
+            Label:
+                text: 'Object width (relative)'
+                size_hint_y: None
+                height: dp(18)
+            Slider:
+                id: obj_slider
+                min: 0.2
+                max: 1.5
+                value: root.obj_width
+                on_value: root.obj_width = self.value
+            Label:
+                id: obj_label
+                text: 'width = {:.2f}'.format(root.obj_width)
+                size_hint_y: None
+                height: dp(18)
+
+            # Object distance (do)
+            Label:
+                text: 'Object distance (do)'
+                size_hint_y: None
+                height: dp(18)
+            Slider:
+                id: objx_slider
+                min: 0.2
+                max: 8.0
+                value: root.obj_x
+                on_value: root.obj_x = self.value
+            Label:
+                id: objx_label
+                text: 'do = {:.2f}'.format(root.obj_x)
+                size_hint_y: None
+                height: dp(18)
+
+<FileChooserPopup>:
+    title: 'Pick an image'
+    size_hint: 0.95, 0.95
+    auto_dismiss: False
+    BoxLayout:
+        orientation: 'vertical'
+        FileChooserIconView:
+            id: filechooser
+            filters: ['*.png','*.jpg','*.jpeg','*.bmp','*.tiff','*.tif']
+            multiselect: False
+            on_selection: root.select(self.path, self.selection)
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(6)
+            Button:
+                text: 'Cancel'
+                on_release: root.dismiss()
+            Button:
+                text: 'Open'
+                on_release: root.select(filechooser.path, filechooser.selection)
