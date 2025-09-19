@@ -7,11 +7,7 @@ package.domain = com.example
 version = 0.1.1
 
 source.dir = .
-source.include_exts = py,kv,png,jpg,jpeg,bmp,gif,ttf,otf,txt
-
-# If you keep assets in subfolders, uncomment:
-# include_patterns = images/*, assets/*
-
+source.include_exts = py,kv,png,jpg,ttf
 requirements = python3,kivy==2.2.0,pillow,numpy,plyer
 orientation = landscape
 fullscreen = 0
@@ -27,8 +23,10 @@ android.accept_sdk_license = True
 android.sdk_path = /usr/local/lib/android/sdk
 android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
 android.ndk = 25.2.9519653
-# Prefer stable build-tools to avoid preview prompts
+# Prefer stable build-tools to avoid preview prompts; this pins p4a to 34.0.0
 android.build_tools_version = 34.0.0
+android.gradle_version = 7.5
+android.gradle_plugin = 7.4.2
 
 # Media/image permissions (Android 13+ and legacy)
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES
