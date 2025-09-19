@@ -29,6 +29,7 @@ jobs:
             libncurses5 libtinfo5 cmake ninja-build
           java -version
           python3 --version
+          pip3 --version
 
       - name: Cache Buildozer/Gradle
         uses: actions/cache@v4
@@ -40,9 +41,12 @@ jobs:
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
           restore-keys: buildozer-${{ runner.os }}-
 
-      - name: Install Buildozer
+      - name: Install Build tools (pin compatible versions)
         run: |
-          python3 -m pip install -U pip setuptools wheel cython buildozer
+          python3 -m pip install -U "pip<25.3" "setuptools==69.5.1" "packaging==23.2" wheel "cython>=0.29.36" virtualenv
+          # Preinstall p4a’s bootstrap deps to avoid the sh/setuptools metadata error
+          python3 -m pip install -U appdirs "colorama>=0.3.3" jinja2 "sh>=1.10,<2.0" build toml
+          python3 -m pip install -U buildozer
           buildozer --version
           python3 -c "import sys; print('Python:', sys.version)"
 
