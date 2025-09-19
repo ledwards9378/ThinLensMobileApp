@@ -10,14 +10,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Java 17 helps Gradle; harmless if not needed
-      - name: Set up Java 17
+      - name: Set up Python 3.11 and Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      # Cache speeds up repeat builds
+      - name: Install host deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git zip unzip openjdk-17-jdk \
+            python3 python3-venv python3-pip libffi-dev libssl-dev libsqlite3-dev zlib1g-dev \
+            libjpeg-dev libfreetype6-dev libbz2-dev liblzma-dev
+          java -version
+          python3 --version
+
       - name: Cache Buildozer/Gradle
         uses: actions/cache@v4
         with:
@@ -28,13 +35,16 @@ jobs:
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
           restore-keys: buildozer-${{ runner.os }}-
 
-      # Official Kivy action (no chown bug)
-      - name: Build with Buildozer
-        uses: kivy/buildozer-action@v1
-        with:
-          workdir: .
-          buildozer_version: stable
-          command: buildozer android debug
+      - name: Install Buildozer
+        run: |
+          python3 -m pip install -U pip setuptools wheel cython buildozer
+
+      - name: Build APK (debug)
+        env:
+          BUILDOZER_WARN_ON_ROOT: "1"
+        run: |
+          buildozer --version
+          buildozer android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
