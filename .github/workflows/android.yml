@@ -11,10 +11,6 @@ jobs:
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
-      ANDROID_NDK_ROOT: /usr/local/lib/android/sdk/ndk/27.3.13750724
-      ANDROIDSDK: /usr/local/lib/android/sdk
-      ANDROIDNDK: /usr/local/lib/android/sdk/ndk/27.3.13750724
     steps:
       - uses: actions/checkout@v4
 
@@ -55,12 +51,18 @@ jobs:
           python3 -m pip install -U buildozer
           buildozer --version
 
-      - name: Accept Android SDK licenses and install packages
+      - name: Install Android cmdline-tools, NDK 25.2, build-tools 34, platform 33
         env:
           PATH: /usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:${PATH}
         run: |
+          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "cmdline-tools;latest"
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
-          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;36.1.0"
+          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
+            "platform-tools" "platforms;android-33" "build-tools;34.0.0" "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
 
       - name: Build APK (debug, verbose)
         env:
