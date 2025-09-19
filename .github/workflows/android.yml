@@ -7,21 +7,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11 and Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Install host deps
+      - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ccache git zip unzip openjdk-17-jdk \
-            python3 python3-venv python3-pip libffi-dev libssl-dev libsqlite3-dev zlib1g-dev \
-            libjpeg-dev libfreetype6-dev libbz2-dev liblzma-dev
+          sudo apt-get install -y --no-install-recommends \
+            build-essential ccache git zip unzip curl rsync pkg-config \
+            openjdk-17-jdk \
+            python3 python3-venv python3-pip python3-setuptools python3-distutils \
+            libffi-dev libssl-dev libsqlite3-dev zlib1g-dev \
+            libjpeg-dev libfreetype6-dev libbz2-dev liblzma-dev \
+            libncurses5 libtinfo5 cmake ninja-build
           java -version
           python3 --version
 
@@ -38,16 +43,29 @@ jobs:
       - name: Install Buildozer
         run: |
           python3 -m pip install -U pip setuptools wheel cython buildozer
+          buildozer --version
+          python3 -c "import sys; print('Python:', sys.version)"
 
-      - name: Build APK (debug)
+      - name: Build APK (debug, verbose)
         env:
           BUILDOZER_WARN_ON_ROOT: "1"
         run: |
-          buildozer --version
-          buildozer android debug
+          set -e
+          buildozer -v android debug
 
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
+
+      - name: Upload build logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-logs
+          path: |
+            .buildozer
+            .gradle
+          if-no-files-found: ignore
